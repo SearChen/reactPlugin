@@ -115,12 +115,12 @@ module.exports = {
             template: path.resolve(__dirname, './app/index.html'),
             chunks: ['app', 'commons']
         }),
-        new CopyWebpackPlugin(
-            [{
-                from: path.resolve(__dirname, './app/worker'),
-                to: 'worker',
-                ignore: ['.*']
-            }]
-        )
+        // new CopyWebpackPlugin(
+        //     [{
+        //         from: path.resolve(__dirname, './app/worker'),
+        //         to: 'worker',
+        //         ignore: ['.*']
+        //     }]
+        // )
     ]
 };

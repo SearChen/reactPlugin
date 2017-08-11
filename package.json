@@ -4,7 +4,9 @@
   "description": "试用于react组成单元插件",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack-dev-server --hot --progress --colors",
+    "dev": "webpack --progress --colors&&node server.js"
   },
   "repository": {
     "type": "git",
