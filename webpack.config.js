@@ -29,7 +29,7 @@ module.exports = {
     resolve: {
         alias: {
             '@': resolve('app'),
-            Images: `${resolve('app')}/`,
+            Images: `${resolve('app')}/images`,
         },
     },
     externals: {
