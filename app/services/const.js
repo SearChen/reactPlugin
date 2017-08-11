@@ -1,0 +1,1 @@
+export const POP_MAP = ['HOME', 'SEARCH', 'MYBOARD']

@@ -1,0 +1,35 @@
+.scrollbar {
+  width: 700px;
+  height: 500px;
+  margin: 100px auto;
+  border: 1px #eee solid;
+  background-color: #eee;
+  display: inline-block;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+
+  /*凹槽宽度*/
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  /*拖动条*/
+  &::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 6px;
+  }
+  /*背景槽*/
+  &::-webkit-scrollbar-track {
+    background-color: #ddd;
+    border-radius: 6px;
+  }
+  p {
+    &:first-child {
+      background-image: url('Images/a.jpg');
+      width: 640px;
+      height: 640px;
+      display: block;
+    }
+  }
+}
+

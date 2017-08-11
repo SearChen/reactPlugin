@@ -29,6 +29,7 @@ module.exports = {
     resolve: {
         alias: {
             '@': resolve('app'),
+            Images: `${resolve('app')}/`,
         },
     },
     externals: {
@@ -58,7 +59,7 @@ module.exports = {
             {
                 test: /\.less$/,
                 //  postcss schema-utils
-                loader: ExtractTextPlugin.extract('style-loader', 'css-loader?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!less-loader?strictMath&noIeCompat!postcss-loader')
+                loader: ExtractTextPlugin.extract('style-loader', 'css-loader?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!less-loader?strictMath&noIeCompat')
             },
             {
                 test: /\.(png|jpe?g|gif)$/,

@@ -1,7 +1,11 @@
 import React, {PureComponent} from 'react'
-import PropTypes from 'prop-types'
+import withCss from '@/services/withCss'
+import styles from './main.less'
+// import PropTypes from 'prop-types'
 // import {connect} from 'react-redux'
 
+
+@withCss(styles)
 class Index extends PureComponent {
     constructor(props) {
         super(props)
@@ -28,14 +32,15 @@ class Index extends PureComponent {
 
     render() {
         return (
-            <div>
+            <div styleName="scrollbar">
                 开始啦
+                <p>
+                </p>
+                <p></p>
             </div>
         )
     }
 }
-
-
 
 export default Index;
 
