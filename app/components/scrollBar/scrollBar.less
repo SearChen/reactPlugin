@@ -1,0 +1,65 @@
+.container{
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border: 1px #eee solid;
+  background-color: #eee;
+  display: inline-block;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+
+  .layer{
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 10;
+    overflow: auto;
+    box-sizing: border-box;
+
+    /*凹槽宽度*/
+    &::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    /*拖动条*/
+    &::-webkit-scrollbar-thumb {
+      background-color: #ccc;
+      border-radius: 6px;
+    }
+    /*背景槽*/
+    &::-webkit-scrollbar-track {
+      background-color: #ddd;
+      border-radius: 6px;
+    }
+    .inner{display: block; }
+  }
+
+  .scrollTrack{
+    bottom: 0;
+    right: 9px;
+    top: 0;
+    width: 0;
+    z-index: 2499;
+    cursor: default;
+    margin: 3px;
+    position: absolute;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    .scrollThumb{
+      background-color: #000;
+      border-radius: 5px;
+      border: 1px solid #ebeced;
+      box-sizing: border-box;
+      height: 9px;
+      opacity: 0;
+      transition: opacity .15s linear;
+      width: 9px;
+    }
+  }
+}
+
+

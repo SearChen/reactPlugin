@@ -1,6 +1,7 @@
 import React, {PureComponent} from 'react'
 import withCss from '@/services/withCss'
 import styles from './main.less'
+import ScrollBar from 'Components/scrollBar'
 // import PropTypes from 'prop-types'
 // import {connect} from 'react-redux'
 
@@ -32,11 +33,12 @@ class Index extends PureComponent {
 
     render() {
         return (
-            <div styleName="scrollbar">
-                开始啦
-                <p>
-                </p>
-                <p></p>
+            <div styleName="container">
+                <ScrollBar>
+                    开始啦
+                    <div styleName="img"></div>
+                    <div styleName="img"></div>
+                </ScrollBar>
             </div>
         )
     }

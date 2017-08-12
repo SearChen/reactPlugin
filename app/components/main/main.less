@@ -23,13 +23,30 @@
     background-color: #ddd;
     border-radius: 6px;
   }
-  p {
-    &:first-child {
-      background-image: url('Images/a.jpg');
-      width: 640px;
-      height: 640px;
-      display: block;
-    }
-  }
+
 }
 
+.container{
+  width: 700px;
+  height: 500px;
+  position: relative;
+  margin: 100px auto;
+  border: 1px #eee solid;
+  background-color: #eee;
+  display: inline-block;
+}
+.img {
+  display: inline-block;
+  background-repeat: no-repeat;
+  &:first-child {
+    width: 640px;
+    height: 640px;
+    float: left;
+    background-image: url('Images/a.jpg');
+  }
+  &:last-child{
+    width: 640px;
+    height: 640px;
+    background-image: url('Images/b.jpg');
+  }
+}
