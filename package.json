@@ -45,6 +45,7 @@
     "gulp-connect": "^5.0.0",
     "gulp-util": "^3.0.7",
     "history": "^4.6.1",
+    "html-loader": "~0.4.3",
     "html-webpack-plugin": "^2.22.0",
     "iscroll": "^5.2.0",
     "less": "^2.7.1",

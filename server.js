@@ -6,10 +6,12 @@ new WebpackDevServer(webpack(config), {
     publicPath: config.output.publicPath,
     hot: true,
     historyApiFallback: true,
-    // proxy: {
-    //     "**": "http://localhost:9090",
-    //     '^/api': '/',     // rewrite path
-    // },
+    proxy: {
+        "**": "http://localhost:9090"
+    },
+    noInfo: true,
+    open: true,
+
 }).listen(9090, 'localhost', function(err, result) {
     if (err) {
         return console.log(err);
