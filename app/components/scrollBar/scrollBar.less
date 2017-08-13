@@ -5,17 +5,18 @@
   border: 1px #eee solid;
   background-color: #eee;
   display: inline-block;
-  overflow: auto;
+  overflow: hidden;
   -webkit-overflow-scrolling: touch;
 
   .layer{
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
     z-index: 10;
-    overflow: auto;
+    padding-bottom: 10px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: -15px;
+    bottom: -15px;
+    overflow: scroll;
     box-sizing: border-box;
 
     /*凹槽宽度*/
@@ -33,7 +34,7 @@
       background-color: #ddd;
       border-radius: 6px;
     }
-    .inner{display: block; }
+    .inner{display: block; padding: 10px;}
   }
 
   .scrollTrack{
@@ -50,7 +51,7 @@
     -ms-user-select: none;
     user-select: none;
     .scrollThumb{
-      background-color: #000;
+      background-color: #ddd;
       border-radius: 5px;
       border: 1px solid #ebeced;
       box-sizing: border-box;
