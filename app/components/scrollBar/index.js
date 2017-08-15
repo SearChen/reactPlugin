@@ -22,7 +22,7 @@ class ScrollBar extends PureComponent {
             offsetHeight = this.layerRef.offsetHeight,
             // thumbHeight = (offsetHeight * offsetHeight / (this.innerRef.offsetHeight - offsetHeight)) /offsetHeight * 100,
             thumbHeight = ( offsetHeight * offsetHeight / this.innerRef.offsetHeight),
-            top = scrollTop/(this.innerRef.offsetHeight - offsetHeight) * (offsetHeight - thumbHeight),
+            top = scrollTop/(this.innerRef.offsetHeight - offsetHeight) * (offsetHeight - thumbHeight), //滚动top比重 ＊ 容器高度余量
             thumbStyle = {};
 
         // console.log('scrollTop: ' + el.scrollTop + ' scrollHeight: ' + el.scrollHeight+ ' offsetHeight: ' + offsetHeight )
