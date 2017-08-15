@@ -14,15 +14,7 @@ class ScrollBar extends PureComponent {
         thumbStyle: {}
     }
     componentDidMount(){
-        this.initThumb()
         this.layerRef.addEventListener('scroll', this.loadScroll);
-    }
-    initThumb = () => {
-        let offsetHeight = this.layerRef.offsetHeight,
-            thumbHeight = ( offsetHeight * offsetHeight / this.innerRef.offsetHeight);
-        this.setState({
-            thumbHeight
-        })
     }
     loadScroll = (e) => {
         let el = e.target,
@@ -30,24 +22,14 @@ class ScrollBar extends PureComponent {
             offsetHeight = this.layerRef.offsetHeight,
             // thumbHeight = (offsetHeight * offsetHeight / (this.innerRef.offsetHeight - offsetHeight)) /offsetHeight * 100,
             thumbHeight = ( offsetHeight * offsetHeight / this.innerRef.offsetHeight),
-            top = el.scrollTop / (el.scrollHeight - this.offsetHeight) * (1 - this.offsetHeight / this.lastScrollHeight) * 100,
+            top = scrollTop/(this.innerRef.offsetHeight - offsetHeight) * (offsetHeight - thumbHeight),
             thumbStyle = {};
 
+        // console.log('scrollTop: ' + el.scrollTop + ' scrollHeight: ' + el.scrollHeight+ ' offsetHeight: ' + offsetHeight )
 
-        console.log(
-           'lay: ' + this.layerRef.scrollTop + ',,offsetHeight: ' + this.layerRef.offsetHeight
-        )
-
-        console.log(
-           'inner: ' + this.innerRef.scrollTop + ',,offsetHeight: ' + this.innerRef.offsetHeight
-        )
-
-        if (scrollTop + thumbHeight >= offsetHeight) {
-            // scrollTop =  offsetHeight - (scrollTop + thumbHeight)
-        }
         thumbStyle = {
             height: thumbHeight,
-            top: top
+            transform: `translateY(${top}px)`
         }
 
         this.setState({
