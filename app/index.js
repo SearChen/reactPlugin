@@ -5,6 +5,7 @@ import {createMemoryHistory} from 'history'
 import store from '@/redux/store'
 import {Provider} from 'react-redux'
 import Main from '@/components/main'
+import CanvasImage from '@/components/getImageColor'
 
 const history = createMemoryHistory()
 
@@ -17,7 +18,8 @@ class App extends PureComponent {
             <Provider store={store}>
                 <Router history={history}>
                     <Switch>
-                        <Route path="/" component={Main}/>
+                        <Route path="/" component={CanvasImage}/>
+                        <Route path="/Main" component={Main}/>
                     </Switch>
                 </Router>
             </Provider>
