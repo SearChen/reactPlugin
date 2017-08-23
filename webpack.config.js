@@ -68,7 +68,7 @@ module.exports = {
             },
             {
                 test: /\.(png|jpe?g|gif)$/,
-                loader: 'url-loader?limit=8192&name=imgs/[name]-[hash].[ext]'
+                loader: 'url-loader?limit=8192&name=imgs/[name].[ext]'
             },
             // {
             //     test: /\.(woff|ttf|eot|svg)$/i,
@@ -121,12 +121,12 @@ module.exports = {
             template: path.resolve(__dirname, './app/index.html'),
             chunks: ['app', 'commons']
         }),
-        // new CopyWebpackPlugin(
-        //     [{
-        //         from: path.resolve(__dirname, './app/worker'),
-        //         to: 'worker',
-        //         ignore: ['.*']
-        //     }]
-        // )
+        new CopyWebpackPlugin(
+            [{
+                from: path.resolve(__dirname, './app/images'),
+                to: 'worker',
+                ignore: ['.*']
+            }]
+        )
     ]
 };

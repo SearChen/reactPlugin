@@ -18,3 +18,4 @@ new WebpackDevServer(webpack(config), {
     }
     console.log('Listening at http://localhost:9090/');
 });
+
