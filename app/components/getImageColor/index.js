@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react'
-import {ColorThiefWrapper, ColorThief} from '@/services/colorThiefService'
-import {ColorRange, colorRangeName, BlackRange, blackRangeName, DarkGrayRange, darkGrayName, LightGrayRange, lightGrayName, WhiteRange, whiteRangeName} from '@/services/hsv'
+import {ColorThiefWrapper, ColorThief} from '@/services/canvasImageService'
+import {ColorValue} from '@/services/hsv'
 import withCss from '@/services/withCss'
 import styles from './getImage.less'
 import _max from 'lodash/max'
@@ -12,6 +12,10 @@ class Index extends PureComponent {
     constructor(props) {
         super(props)
         this.img0 = null;
+        this.width = null;
+        this.height = null;
+        this.context = null;
+        this.colorArrays= new Array(5).fill([]);
     }
 
     state = {
@@ -26,36 +30,63 @@ class Index extends PureComponent {
     componentWillUnMount() {
 
     }
-    getRGB = () => {
-        let colorThiefWrapper = new ColorThiefWrapper(),
-            colorThief = new ColorThief(), palette;
+    CanvasImage = (image) => {
+        this.canvas = document.createElement('canvas');
+        document.body.appendChild(this.canvas);
+        this.context = this.canvas.getContext('2d');
+        this.width = this.canvas.width = image.width;
+        this.height = this.canvas.height = image.height;
+        this.context.drawImage(image, 0, 0, this.width, this.height);
+    }
+    getPixelCount = () => {
+        return this.width * this.height;
+    }
+    getPalette = (sourceImage) => {
+        this.CanvasImage(sourceImage);
 
-        palette = colorThief.getPalette(this.img0, 8);
+        var imageData = this.context.getImageData(0, 0, this.width, this.height);
+        var pixels = imageData.data;
+        var pixelCount = this.getPixelCount();
+
+        return {pixelCount, pixels}
+    }
+    getRGB = () => {
+        let palette;
+
+        palette = this.getPalette(this.img0);
         console.log(palette)
 
-        for (let i = 0; i < palette.length; i++){
-            let hsv = this.getColor(palette[i])
-            // console.log('hsv: ' )
-            // console.log(hsv)
-            this.readRange(hsv);
+        console.time('----------- loop');
+        let pixelArray = [],{pixelCount, pixels} = palette, quality = 4;
+        for (var i = 0, offset, r, g, b, a; i <= pixelCount; i = i + quality) {
+            offset = i * 4;
+            r = pixels[i + 0];
+            g = pixels[i + 1];
+            b = pixels[i + 2];
+            a = pixels[i + 3];
+            // If pixel is mostly opaque and not white
+            if (a >= 125) {
+                if (!(r > 250 && g > 250 && b > 250)) {
+                   let hsv = this.getHSV([r, g, b]);
+                    // this.readRange(hsv);
+                    pixelArray.push(hsv);
+
+                }
+            }
         }
+        console.timeEnd('----------- loop' )
 
+        console.time('++++++++++++ loop');
+        for (let k = 0; k < pixelArray.length; k++){
+            this.readRange(pixelArray[k]);
+        }
+        console.timeEnd('++++++++++++ loop')
+        console.log(this.colorArrays)
 
-        colorThiefWrapper.getColor( this.img0, (colorThief) => {
-            this.getColor(colorThief)
-            // console.log(colorThief)
-            this.setState({
-                smallStyle: palette,
-                aloneStyle: colorThief
-            })
-        });
     }
-    getColor = (f) => {
+    getHSV = (f) => {
         let max = _max(f), v = max, min = _min(f), s = (max - min)/max,
             index = f.indexOf(max), h;
-
-        s = s * 255.0;
-
        switch (index){
            case 0:
                h = Math.round(60 * (f[1] - f[2]) / (max - min));
@@ -68,38 +99,33 @@ class Index extends PureComponent {
                break;
            default: break;
        }
+       s = Math.floor(s * 255.0);
        h = h/2;
         // console.log(
         //     'H: ' + h +
         //     ' S : ' + s +
         //     ' V : ' + v
-        // )
+        // )c
        return {
            h, s, v
        }
     }
-
     readRange = (hsv) => {
-
-        this.arrayCompate(ColorRange, hsv, 'colorRangeName', colorRangeName);
-        this.arrayCompate(BlackRange, hsv, 'blackRangeName', blackRangeName);
-        this.arrayCompate(DarkGrayRange, hsv, 'darkGrayName', darkGrayName);
-        this.arrayCompate(LightGrayRange, hsv, 'lightGrayName', lightGrayName);
-        this.arrayCompate(WhiteRange, hsv, 'whiteRangeName', whiteRangeName);
-    }
-    arrayCompate = (array, hsv, title, colorName) => {
-        for (let i = 0; i < array.length; i++){
-            let {h, s, v} = hsv;
-            if (array[i][0][0] <= h &&  h < array[i][0][1]){
-                if(array[i][1][0] <= s &&  s < array[i][1][1]){
-                    if(array[i][2][0] <= v &&  v < array[i][2][1]){
-                        console.log(h +' s: '+ s + ' v: ' + v)
-                        console.log(title + ' value: '+array[i] +' 当前索引：' + i +' 数据值：' + colorName[i])
+        let {h, s, v} = hsv;
+        for (let i = 0; i < ColorValue.length; i++){
+            let values = ColorValue[i][0];
+            // this.getColors(values, hsv, i)
+            for ( let j = 0; j < values.length; j ++) {
+                if (values[j][0][0] <= h &&  h < values[j][0][1]){
+                    if(values[j][1][0] <= s &&  s < values[j][1][1]){
+                        if(values[j][2][0] <= v &&  v < values[j][2][1]){
+                            this.colorArrays[i].push(j);
+                            // console.log('h: ' + h +' s: '+ s + ' v: ' + v + ' value: '+values[j] + ' 当前分类：' + i +' 当前索引：' + j +' 数据值：' + ColorValue[i][1][j])
+                        }
                     }
                 }
             }
         }
-
     }
 
     rendFile = () => {
