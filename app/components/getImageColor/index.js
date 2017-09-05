@@ -15,7 +15,7 @@ class Index extends PureComponent {
         this.width = null;
         this.height = null;
         this.context = null;
-        this.colorArrays= new Array(5).fill([]);
+        this.colorArrays= [[],[],[],[],[],[]];
     }
 
     state = {
@@ -51,42 +51,61 @@ class Index extends PureComponent {
         return {pixelCount, pixels}
     }
     getRGB = () => {
-        let palette;
+        let palette, length = 0, test = false; //[1,9, 100];
 
-        palette = this.getPalette(this.img0);
-        console.log(palette)
+        if (test) {
+            console.log(this.getHSV(test))
+        }else {
+            palette = this.getPalette(this.img0);
+            console.log(palette)
 
-        console.time('----------- loop');
-        let pixelArray = [],{pixelCount, pixels} = palette, quality = 4;
-        for (var i = 0, offset, r, g, b, a; i <= pixelCount; i = i + quality) {
-            offset = i * 4;
-            r = pixels[i + 0];
-            g = pixels[i + 1];
-            b = pixels[i + 2];
-            a = pixels[i + 3];
-            // If pixel is mostly opaque and not white
-            if (a >= 125) {
-                if (!(r > 250 && g > 250 && b > 250)) {
-                   let hsv = this.getHSV([r, g, b]);
-                    // this.readRange(hsv);
-                    pixelArray.push(hsv);
+            console.time('----------- loop');
+            let pixelArray = [], {pixelCount, pixels} = palette, quality = 4;
+            for (var i = 0, offset, r, g, b, a; i <= pixelCount; i = i + quality) {
+                offset = i * 4;
+                r = pixels[i + 0];
+                g = pixels[i + 1];
+                b = pixels[i + 2];
+                a = pixels[i + 3];
+                // If pixel is mostly opaque and not white
+                if (a >= 125) {
+                    if (!(r > 250 && g > 250 && b > 250)) {
+                        let hsv = this.getHSV([r, g, b]);
+                        // this.readRange(hsv);
+                        pixelArray.push(hsv);
 
+                    }
                 }
             }
-        }
-        console.timeEnd('----------- loop' )
+            console.timeEnd('----------- loop')
 
-        console.time('++++++++++++ loop');
-        for (let k = 0; k < pixelArray.length; k++){
-            this.readRange(pixelArray[k]);
-        }
-        console.timeEnd('++++++++++++ loop')
-        console.log(this.colorArrays)
+            console.time('++++++++++++ loop');
+            for (let k = 0; k < pixelArray.length; k++) {
+                this.readRange(pixelArray[k]);
+            }
+            console.timeEnd('++++++++++++ loop')
 
+            this.colorArrays.map((v) => length += v.length)
+
+            for (let l = 0; l < this.colorArrays.length; l++) {
+                let obj = this.getPercentage(this.colorArrays[l]),
+                    values = Object.values(obj), max = _max(values);
+                values.map((v, i) => max === v && console.log('分类：' + l + ' 下标： ' + i + ' 百分比：' + max / length + '  ----- max ' + max + '  length ' + length +
+                    ' 色值： ' + ColorValue[l][1][i]))
+            }
+            console.log(this.colorArrays)
+        }
     }
     getHSV = (f) => {
         let max = _max(f), v = max, min = _min(f), s = (max - min)/max,
             index = f.indexOf(max), h;
+       if (f[[0]] === f[1]){
+           index = 1;
+       } else if(f[0]===f[2]){
+           index = 2;
+       } else if(f[1] === f[2]){
+            index = 0;
+       }
        switch (index){
            case 0:
                h = Math.round(60 * (f[1] - f[2]) / (max - min));
@@ -100,12 +119,7 @@ class Index extends PureComponent {
            default: break;
        }
        s = Math.floor(s * 255.0);
-       h = h/2;
-        // console.log(
-        //     'H: ' + h +
-        //     ' S : ' + s +
-        //     ' V : ' + v
-        // )c
+       h = Math.round(h/2);
        return {
            h, s, v
        }
@@ -114,18 +128,34 @@ class Index extends PureComponent {
         let {h, s, v} = hsv;
         for (let i = 0; i < ColorValue.length; i++){
             let values = ColorValue[i][0];
-            // this.getColors(values, hsv, i)
             for ( let j = 0; j < values.length; j ++) {
                 if (values[j][0][0] <= h &&  h < values[j][0][1]){
                     if(values[j][1][0] <= s &&  s < values[j][1][1]){
                         if(values[j][2][0] <= v &&  v < values[j][2][1]){
                             this.colorArrays[i].push(j);
-                            // console.log('h: ' + h +' s: '+ s + ' v: ' + v + ' value: '+values[j] + ' 当前分类：' + i +' 当前索引：' + j +' 数据值：' + ColorValue[i][1][j])
+                             // console.log('h: ' + h +' s: '+ s + ' v: ' + v + ' value: '+values[j] + ' 当前分类：' + i +' 当前索引：' + j +' 数据值：' + ColorValue[i][1][j])
                         }
                     }
                 }
             }
         }
+    }
+    getPercentage = (array) => {
+        let value = this.getRepeatNum(array);
+        console.log(value)
+        return value;        
+    }
+    getRepeatNum = (array) => { //获取数量
+        var map = {};
+        for(var i = 0; i < array.length; i++){
+            var ai = array[i];
+            if(!map[ai]){
+                map[ai] = 1;
+            }else{
+                map[ai]++;
+            }
+        }
+        return map;
     }
 
     rendFile = () => {
@@ -144,7 +174,7 @@ class Index extends PureComponent {
         return (
             <div styleName="container">
                 <button type="button" onClick={() => this.rendFile()}>读文件</button>
-                <img src={`worker/050.jpg`} ref={(el) => this.img0 = el }/>
+                <img src={`worker/01.jpg`} ref={(el) => this.img0 = el }/>
                 <button type="button" onClick={() => this.getRGB()}> 提取</button>
                 主色：
                 {
