@@ -17,6 +17,7 @@ class Index extends PureComponent {
         this.context = null;
         this.colorArrays = [[], [], [], [], []];
         this.resetPoints = [];
+        this.repeatArrays = [];
     }
 
     state = {
@@ -54,7 +55,7 @@ class Index extends PureComponent {
         return {pixelCount, pixels}
     }
     getRGB = () => {
-        let palette, length = 0, allValue = [], test = false;//[216,217, 211];
+        let palette, length = 0,allValue = [], test = false;//[216,217, 211];
 
         if (test) {
             console.log(this.getHSV(test))
@@ -63,19 +64,20 @@ class Index extends PureComponent {
             console.log(palette)
 
             console.time('----------- loop');
-            let {pixelCount, pixels} = palette, quality = 4;
-            for (var i = 0, r, g, b, a; i <= pixelCount * 4; i = i + quality) {
-                r = pixels[i + 0];
+            let {pixels} = palette, quality = 4;
+            for (let i = 0, r, g, b, a; i <= pixels.length; i = i + quality) {
+                r = pixels[i];
                 g = pixels[i + 1];
                 b = pixels[i + 2];
                 a = pixels[i + 3];
                 // If pixel is mostly opaque and not white
                 if (a > 0) {
-                    if (!(r = pixels[0] && g === pixels[1] && g === pixels[2])) {
+                    if (!(pixels[i] === pixels[0] && pixels[i + 1] === pixels[1] && pixels[i + 2] === pixels[2])) {
                         let hsv = this.getHSV([r, g, b]),
                             {h,s,v} = hsv;
                         if (!((0 <= h&& h <= 180) && (0 <= s && s <= 15) && (v === 255))){
-                                   this.readRange(hsv);
+                               this.readRange(hsv, i, [pixels[i], pixels[i + 1], pixels[i + 2]]);
+                                length++;
                         }
                     }
                 }
@@ -83,17 +85,13 @@ class Index extends PureComponent {
             console.timeEnd('----------- loop')
 
             console.time('++++++++++++ loop');
-            this.colorArrays.map((v) => {
-                length += v.length;
-            })
 
             for (let l = 0; l < this.colorArrays.length; l++) {
-                let obj = this.getRepeatNum(this.colorArrays[l]),
+                let obj = this.getRepeatNum(this.colorArrays[l], true),
                     keys = Object.keys(obj),
                     values = Object.values(obj),
                     max = _max(values);
                 allValue = allValue.concat(values);
-                
                 // values.map((v, i) => max === v && console.log('分类：' + l + ' 下标： ' + keys[i] + ' 百分比：' + max / length + '  ----- max ' + max + '  length ' + length +
                 //                     ' 色值： ' + ColorValue[l][1][keys[i]]))
             }
@@ -105,11 +103,9 @@ class Index extends PureComponent {
 
     getCompete = () => {
         let c = document.getElementById('test'), canContext = c.getContext('2d');
-
-
         canContext.drawImage(this.img0, 0, 0, this.width, this.height);
 
-        let imgData = canContext.getImageData(0, 0, 800, 800), data = imgData.data;
+        let imgData = canContext.getImageData(0, 0, this.width, this.heigth), data = imgData.data;
         // resetArray = new Uint8Array([0,0,0,255, 0,0,0,255, 0,0,0,255, 0,0,0,255]),
         // let imgData = canContext.createImageData(800, 800),  data = imgData.data;
         // let data = imgData.data;
@@ -117,20 +113,14 @@ class Index extends PureComponent {
         for (var j = 0; j <= data.length; j += 4) {
             for (var k = 0; k < this.resetPoints.length; k++) {
                 if (data[j] === this.resetPoints[k]) {
-                    data[j] = 0;
+                    data[j] = 255;
                     data[j + 1] = 0;
                     data[j + 2] = 0;
                     // data[j + 3] = 255;
                 }
             }
-            // data[j]     = 0;     // red
-            // data[j + 1] = 0; // green
-            // data[j + 2] = 0; // blue
-
         }
         canContext.putImageData(imgData, 0, 0);
-
-        //
     }
     getHSV = (f) => {
         let max = _max(f), v = max, min = _min(f), s = (max - min) / max,
@@ -161,7 +151,7 @@ class Index extends PureComponent {
             h, s, v
         }
     }
-    readRange = (hsv) => {
+    readRange = (hsv, index, rgb) => {
         let {h, s, v} = hsv;
         for (let i = 0; i < ColorValue.length; i++) {
             let values = ColorValue[i][0];
@@ -170,13 +160,21 @@ class Index extends PureComponent {
                     if (values[j][1][0] <= s && s <= values[j][1][1]) {
                         if (values[j][2][0] <= v && v <= values[j][2][1]) {
                             this.colorArrays[i].push(j);
+                            if(!this.repeatArrays[i]){
+                                 this.repeatArrays[i] = 1;
+                            } else {
+                                this.repeatArrays[i]++;
+                            }
+                            if(i ===0 && j === 3){
+                                this.resetPoints.push(index)
+                            }
                         }
                     }
                 }
             }
         }
     }
-    getRepeatNum = (array) => { //获取数量
+    getRepeatNum = (array, f) => { //获取数量
         var map = {};
         for (var i = 0; i < array.length; i++) {
             var ai = array[i];
@@ -186,7 +184,7 @@ class Index extends PureComponent {
                 map[ai]++;
             }
         }
-        console.log(map)
+        f && console.log(map)
         return map;
     }
 
@@ -211,7 +209,6 @@ class Index extends PureComponent {
                                                         ' 色值： ' + ColorValue[l][1][keys[i]])
                 }
            })
-
         }
     }
 
@@ -223,7 +220,7 @@ class Index extends PureComponent {
         return (
             <div styleName="container">
                 <button type="button" onClick={() => this.rendFile()}>读文件</button>
-                <img src={`worker/016.png`} ref={(el) => this.img0 = el}/>
+                <img src={`worker/0199.jpg`} ref={(el) => this.img0 = el}/>
                 <button type="button" onClick={() => this.getRGB()}> 提取</button>
                 <button type="button" onClick={() => this.getCompete()}>区别点</button>
                 主色：
