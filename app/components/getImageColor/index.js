@@ -64,17 +64,19 @@ class Index extends PureComponent {
 
             console.time('----------- loop');
             let {pixelCount, pixels} = palette, quality = 4;
-            for (var i = 0, offset, r, g, b, a; i <= pixelCount * 4; i = i + quality) {
+            for (var i = 0, r, g, b, a; i <= pixelCount * 4; i = i + quality) {
                 r = pixels[i + 0];
                 g = pixels[i + 1];
                 b = pixels[i + 2];
                 a = pixels[i + 3];
                 // If pixel is mostly opaque and not white
                 if (a > 0) {
-                    if (!(r === 255 && g === 255 && b === 255)) {
-                        let hsv = this.getHSV([r, g, b]);
-                        this.readRange(hsv, pixels[i]);
-
+                    if (!(r = pixels[0] && g === pixels[1] && g === pixels[2])) {
+                        let hsv = this.getHSV([r, g, b]),
+                            {h,s,v} = hsv;
+                        if (!((0 <= h&& h <= 180) && (0 <= s && s <= 15) && (v === 255))){
+                                   this.readRange(hsv);
+                        }
                     }
                 }
             }
@@ -86,17 +88,18 @@ class Index extends PureComponent {
             })
 
             for (let l = 0; l < this.colorArrays.length; l++) {
-                let obj = this.getPercentage(this.colorArrays[l]),
+                let obj = this.getRepeatNum(this.colorArrays[l]),
                     keys = Object.keys(obj),
                     values = Object.values(obj),
                     max = _max(values);
                 allValue = allValue.concat(values);
+                
+                // values.map((v, i) => max === v && console.log('分类：' + l + ' 下标： ' + keys[i] + ' 百分比：' + max / length + '  ----- max ' + max + '  length ' + length +
+                //                     ' 色值： ' + ColorValue[l][1][keys[i]]))
             }
-
             this.getPercent(allValue, length);
             // console.log(this.colorArrays)
-
-            console.timeEnd('++++++++++++ loop')               
+            console.timeEnd('++++++++++++ loop')
         }
     }
 
@@ -158,7 +161,7 @@ class Index extends PureComponent {
             h, s, v
         }
     }
-    readRange = (hsv, index) => {
+    readRange = (hsv) => {
         let {h, s, v} = hsv;
         for (let i = 0; i < ColorValue.length; i++) {
             let values = ColorValue[i][0];
@@ -167,20 +170,11 @@ class Index extends PureComponent {
                     if (values[j][1][0] <= s && s <= values[j][1][1]) {
                         if (values[j][2][0] <= v && v <= values[j][2][1]) {
                             this.colorArrays[i].push(j);
-                            // if(i===0 && j=== 7){
-                            //     this.resetPoints.push(index);
-                            // }
-                            // console.log('h: ' + h +' s: '+ s + ' v: ' + v + ' value: '+values[j] + ' 当前分类：' + i +' 当前索引：' + j +' 数据值：' + ColorValue[i][1][j])
                         }
                     }
                 }
             }
         }
-    }
-    getPercentage = (array) => {
-        let value = this.getRepeatNum(array);
-        console.log(value)
-        return value;
     }
     getRepeatNum = (array) => { //获取数量
         var map = {};
@@ -192,26 +186,28 @@ class Index extends PureComponent {
                 map[ai]++;
             }
         }
+        console.log(map)
         return map;
     }
 
     getPercent = (allValue, length) => {
         let sortValue = allValue.sort(function(a, b){ return a -b;});
-        sortValue.reverse();
+        sortValue = sortValue.reverse();
+        
         for (let l = 0; l < this.colorArrays.length; l++) {
-            let obj = this.getPercentage(this.colorArrays[l]),
+            let obj = this.getRepeatNum(this.colorArrays[l]),
                 keys = Object.keys(obj),
                 values = Object.values(obj);
 
            values.map((v, i) =>{
                 if(v === sortValue[0]){
-                    console.log('分类：' + l + ' 下标： ' + keys[i] + ' 百分比：' + sortValue[0] / length + '  ----- max ' + sortValue[0] + '  length ' + length +
+                    console.log('类：' + l + ' 下标： ' + keys[i] + ' 百分比：' + sortValue[0] / length + '  ----- max ' + sortValue[0] + '  length ' + length +
                                     ' 色值： ' + ColorValue[l][1][keys[i]])
-                } else if(v === sortValue[1]) {
-                    console.log('分类：' + l + ' 下标： ' + keys[i] + ' 百分比：' + sortValue[0] / length + '  ----- max ' + sortValue[0] + '  length ' + length +
+                }  if(v === sortValue[1]) {
+                    console.log('类：' + l + ' 下标： ' + keys[i] + ' 百分比：' + sortValue[1] / length + '  ----- max ' + sortValue[1] + '  length ' + length +
                                                         ' 色值： ' + ColorValue[l][1][keys[i]])
-                } else if(v === sortValue[2]){
-                    console.log('分类：' + l + ' 下标： ' + keys[i] + ' 百分比：' + sortValue[0] / length + '  ----- max ' + sortValue[0] + '  length ' + length +
+                }  if(v === sortValue[2]){
+                    console.log('类：' + l + ' 下标： ' + keys[i] + ' 百分比：' + sortValue[2] / length + '  ----- max ' + sortValue[2] + '  length ' + length +
                                                         ' 色值： ' + ColorValue[l][1][keys[i]])
                 }
            })
@@ -220,14 +216,6 @@ class Index extends PureComponent {
     }
 
     rendFile = () => {
-        // let path = 'worker/', files = fs.readdir(path, function (err, files) {
-        //     if (err) {
-        //         console.log('err');
-        //     }
-        //     files.forEach(function (file) {
-        //         console.log(file)
-        //     })
-        // });
     }
 
     render() {
@@ -235,7 +223,7 @@ class Index extends PureComponent {
         return (
             <div styleName="container">
                 <button type="button" onClick={() => this.rendFile()}>读文件</button>
-                <img src={`worker/01.jpg`} ref={(el) => this.img0 = el}/>
+                <img src={`worker/016.png`} ref={(el) => this.img0 = el}/>
                 <button type="button" onClick={() => this.getRGB()}> 提取</button>
                 <button type="button" onClick={() => this.getCompete()}>区别点</button>
                 主色：
