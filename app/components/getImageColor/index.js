@@ -17,7 +17,6 @@ class Index extends PureComponent {
         this.context = null;
         this.colorArrays = [[], [], [], [], []];
         this.resetPoints = [];
-        this.repeatArrays = [];
     }
 
     state = {
@@ -64,19 +63,24 @@ class Index extends PureComponent {
             console.log(palette)
 
             console.time('----------- loop');
-            let {pixels} = palette, quality = 4;
-            for (let i = 0, r, g, b, a; i <= pixels.length; i = i + quality) {
-                r = pixels[i];
-                g = pixels[i + 1];
-                b = pixels[i + 2];
-                a = pixels[i + 3];
+            let {pixelCount, pixels} = palette, offset, r, g, b, a;
+            for (let i = 0; i <= pixelCount; i++) {
+                offset = i * 4;
+                r = pixels[offset];
+                g = pixels[offset + 1];
+                b = pixels[offset + 2];
+                a = pixels[offset + 3];
                 // If pixel is mostly opaque and not white
                 if (a > 0) {
-                    if (!(pixels[i] === pixels[0] && pixels[i + 1] === pixels[1] && pixels[i + 2] === pixels[2])) {
+                    if (!(pixels[offset] === pixels[0] && pixels[offset + 1] === pixels[1] && pixels[offset + 2] === pixels[2])) {
                         let hsv = this.getHSV([r, g, b]),
                             {h,s,v} = hsv;
-                        if (!((0 <= h&& h <= 180) && (0 <= s && s <= 15) && (v === 255))){
-                               this.readRange(hsv, i, [pixels[i], pixels[i + 1], pixels[i + 2]]);
+                        if(h>180 || h< 0){
+                            console.log(h);
+                            this.getHSV()
+                        }
+                        if (!((0 <= s && s <= 15) && (v === 255))){
+                               this.readRange(hsv, i, [r, g, b]);
                                 length++;
                         }
                     }
@@ -85,9 +89,8 @@ class Index extends PureComponent {
             console.timeEnd('----------- loop')
 
             console.time('++++++++++++ loop');
-
             for (let l = 0; l < this.colorArrays.length; l++) {
-                let obj = this.getRepeatNum(this.colorArrays[l], true),
+                let obj = this.getRepeatNum(this.colorArrays[l]),
                     keys = Object.keys(obj),
                     values = Object.values(obj),
                     max = _max(values);
@@ -105,11 +108,12 @@ class Index extends PureComponent {
         let c = document.getElementById('test'), canContext = c.getContext('2d');
         canContext.drawImage(this.img0, 0, 0, this.width, this.height);
 
-        let imgData = canContext.getImageData(0, 0, this.width, this.heigth), data = imgData.data;
+        let imgData = canContext.getImageData(0, 0, this.width, this.height), data = imgData.data;
         // resetArray = new Uint8Array([0,0,0,255, 0,0,0,255, 0,0,0,255, 0,0,0,255]),
         // let imgData = canContext.createImageData(800, 800),  data = imgData.data;
         // let data = imgData.data;
-
+        console.log('----'+canContext.getImageData(200, 50, 1, 1).data)
+        console.log('+++'+canContext.getImageData(50, 200, 1, 1).data)
         for (var j = 0; j <= data.length; j += 4) {
             for (var k = 0; k < this.resetPoints.length; k++) {
                 if (data[j] === this.resetPoints[k]) {
@@ -123,58 +127,59 @@ class Index extends PureComponent {
         canContext.putImageData(imgData, 0, 0);
     }
     getHSV = (f) => {
-        let max = _max(f), v = max, min = _min(f), s = (max - min) / max,
+        let max = _max(f), v = max, min = _min(f), s = v === 0 ? 0:(v - min) / v,
             index = f.indexOf(max), h;
-        if (f[[0]] === f[1]) {
-            index = 1;
-        } else if (f[0] === f[2]) {
-            index = 2;
-        } else if (f[1] === f[2]) {
+        if (f[0] === f[1] && index !== 2) {
             index = 0;
+        } else if (f[0] === f[2] && index !== 1) {
+            index = 2;
+        } else if (f[1] === f[2] && index !== 0) {
+            index = 1;
         }
         switch (index) {
             case 0:
-                h = Math.round(60 * (f[1] - f[2]) / (max - min));
+                h = Math.round(60 * (f[1] - f[2]) / (v - min));
                 break;
             case 1:
-                h = 120 + Math.round(60 * (f[2] - f[0]) / (max - min));
+                h = 120 + Math.round(60 * (f[2] - f[0]) / (v - min));
                 break;
             case 2:
-                h = 240 + Math.round(60 * (f[0] - f[1]) / (max - min));
+                h = 240 + Math.round(60 * (f[0] - f[1]) / (v - min));
                 break;
             default:
                 break;
         }
         s = Math.floor(s * 255.0);
+        h < 0 && (h += 360);
         h = Math.round(h / 2);
+        
         return {
             h, s, v
         }
     }
     readRange = (hsv, index, rgb) => {
-        let {h, s, v} = hsv;
-        for (let i = 0; i < ColorValue.length; i++) {
-            let values = ColorValue[i][0];
-            for (let j = 0; j < values.length; j++) {
-                if (values[j][0][0] <= h && h <= values[j][0][1]) {
-                    if (values[j][1][0] <= s && s <= values[j][1][1]) {
-                        if (values[j][2][0] <= v && v <= values[j][2][1]) {
-                            this.colorArrays[i].push(j);
-                            if(!this.repeatArrays[i]){
-                                 this.repeatArrays[i] = 1;
-                            } else {
-                                this.repeatArrays[i]++;
-                            }
-                            if(i ===0 && j === 3){
-                                this.resetPoints.push(index)
+        let {h, s, v} = hsv, i = 0,  j = 0;
+        try {
+            for (i = 0; i < ColorValue.length; i++) {
+                let values = ColorValue[i][0];
+                for (j = 0; j < values.length; j++) {
+                    if (values[j][0][0] <= h && h <= values[j][0][1]) {
+                        if (values[j][1][0] <= s && s <= values[j][1][1]) {
+                            if (values[j][2][0] <= v && v <= values[j][2][1]) {
+                                this.colorArrays[i].push(j);
+                                // if(i ===0 && j === 3){
+                                //     this.resetPoints.push(index)
+                                // }
                             }
                         }
                     }
                 }
             }
+        }catch (e){
+            // console.log(e + 'i: ' + i + 'j: ' + j)
         }
     }
-    getRepeatNum = (array, f) => { //获取数量
+    getRepeatNum = (array) => { //获取数量
         var map = {};
         for (var i = 0; i < array.length; i++) {
             var ai = array[i];
@@ -184,7 +189,6 @@ class Index extends PureComponent {
                 map[ai]++;
             }
         }
-        f && console.log(map)
         return map;
     }
 
@@ -220,7 +224,7 @@ class Index extends PureComponent {
         return (
             <div styleName="container">
                 <button type="button" onClick={() => this.rendFile()}>读文件</button>
-                <img src={`worker/0199.jpg`} ref={(el) => this.img0 = el}/>
+                <img src={`worker/045.jpg`} ref={(el) => this.img0 = el}/>
                 <button type="button" onClick={() => this.getRGB()}> 提取</button>
                 <button type="button" onClick={() => this.getCompete()}>区别点</button>
                 主色：
