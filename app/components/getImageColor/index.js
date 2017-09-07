@@ -89,17 +89,74 @@ class Index extends PureComponent {
             console.timeEnd('----------- loop')
 
             console.time('++++++++++++ loop');
-            for (let l = 0; l < this.colorArrays.length; l++) {
-                let obj = this.getRepeatNum(this.colorArrays[l]),
-                    keys = Object.keys(obj),
-                    values = Object.values(obj),
-                    max = _max(values);
-                allValue = allValue.concat(values);
-                // values.map((v, i) => max === v && console.log('分类：' + l + ' 下标： ' + keys[i] + ' 百分比：' + max / length + '  ----- max ' + max + '  length ' + length +
-                //                     ' 色值： ' + ColorValue[l][1][keys[i]]))
+
+            let colorName2Matrix = [];
+            for (let i = 0; i < ColorValue.length; i++) {
+                let colorName2Index = {} ;
+                let colorNames = ColorValue[i][1];
+                for (let j = 0; j < colorNames.length; j++) {
+                    colorName2Index[colorNames[j]] = j;
+                }
+                colorName2Matrix.push(colorName2Index);
             }
-            this.getPercent(allValue, length);
-            // console.log(this.colorArrays)
+            let newColorArray = [];
+            for (let l = 0; l < this.colorArrays.length; l++) {
+                let colorArray = this.colorArrays[l];
+                let jCounts = this.getRepeatNum(colorArray);
+                if (l === 0) {
+                    Object.keys(jCounts).forEach((j) => {
+                        let count = jCounts[j];
+                        let colorName = ColorValue[l][1][j];
+                        if (colorName.substr(colorName.length-1, 1) === '2') {
+                            let targetColorName = colorName.substr(0, colorName.length-1);
+                            let targetColorNameIndex = colorName2Matrix[l][targetColorName];
+                            if (typeof targetColorNameIndex !== "undefined") {
+                                jCounts[targetColorNameIndex] += count;
+                                jCounts[j] = 0;
+                            }
+                        }
+                    });
+                    Object.keys(jCounts).forEach((j) => {
+                        newColorArray.push({
+                            name: ColorValue[l][1][j],
+                            count: jCounts[j]
+                        });
+                    });
+                } else {
+                    var k = 0;
+                    Object.keys(jCounts).forEach((j) => {
+                        k += jCounts[j];
+                    });
+                    var colorName = "";
+                    switch (l) {
+                        case 1:
+                            colorName = "black";
+                            break;
+                        case 2:
+                            colorName = "darkgray";
+                            break;
+                        case 3:
+                            colorName = "lightgray";
+                            break;
+                        default:
+                            colorName = "white";
+                    }
+                    newColorArray.push({
+                        name: colorName,
+                        count: k
+                    });
+                }
+            }
+
+            let sortedColorArray = newColorArray.sort(function(a, b){ return b.count - a.count;});
+            for (let i = 0; i < 3 && i < sortedColorArray.length; i++) {
+                let percent = sortedColorArray[i]['count'] / length;
+                if (percent < 0.05) {
+                    break;
+                }
+                console.log("color: " + sortedColorArray[i]['name'] + ', percent: ' + percent);
+            }
+
             console.timeEnd('++++++++++++ loop')
         }
     }
@@ -162,14 +219,15 @@ class Index extends PureComponent {
         try {
             for (i = 0; i < ColorValue.length; i++) {
                 let values = ColorValue[i][0];
-                for (j = 0; j < values.length; j++) {
+                let nextJ = true;
+                for (j = 0; j < values.length && nextJ; j++) {
                     if (values[j][0][0] <= h && h <= values[j][0][1]) {
                         if (values[j][1][0] <= s && s <= values[j][1][1]) {
                             if (values[j][2][0] <= v && v <= values[j][2][1]) {
                                 this.colorArrays[i].push(j);
-                                // if(i ===0 && j === 3){
-                                //     this.resetPoints.push(index)
-                                // }
+                                if (i > 0) {
+                                    nextJ = false;
+                                }
                             }
                         }
                     }
@@ -193,9 +251,8 @@ class Index extends PureComponent {
     }
 
     getPercent = (allValue, length) => {
-        let sortValue = allValue.sort(function(a, b){ return a -b;});
-        sortValue = sortValue.reverse();
-        
+        let sortValue = allValue.sort(function(a, b){ return b - a;});
+
         for (let l = 0; l < this.colorArrays.length; l++) {
             let obj = this.getRepeatNum(this.colorArrays[l]),
                 keys = Object.keys(obj),
@@ -224,7 +281,7 @@ class Index extends PureComponent {
         return (
             <div styleName="container">
                 <button type="button" onClick={() => this.rendFile()}>读文件</button>
-                <img src={`worker/045.jpg`} ref={(el) => this.img0 = el}/>
+                <img src={`worker/016.png`} ref={(el) => this.img0 = el}/>
                 <button type="button" onClick={() => this.getRGB()}> 提取</button>
                 <button type="button" onClick={() => this.getCompete()}>区别点</button>
                 主色：
