@@ -1,2 +1,2 @@
 # reactPlugin
-试用于react组成单元插件
+通过canvas 图片获取百分比前三色
